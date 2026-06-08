@@ -81,6 +81,9 @@ appears. (See `src/training/train.py` docstring.)
   vol, and discrete/fixed costs not modeled here.
 - One network per cost level (cost-specific), not a single cost-conditional policy.
 - Risk-neutral drift; no model/parameter uncertainty.
+- Single training seed. The 1–2% wins are large and seed-robust; the 0.5%
+  crossover (4.17 vs 4.53) is narrow — the monotone trend is the reliable signal,
+  not that one point's exact margin.
 
 ## Next steps
 - Stochastic-vol / jump paths, where BS delta degrades and the NN edge should widen.
