@@ -160,8 +160,10 @@ cost-conditional net vs the 5 cost-specialized nets (specialists = multi-seed me
 
 The single net **matches the specialists everywhere and slightly beats them at
 mid-range costs** — cross-cost training acts as regularization / data
-augmentation. One model replaces five at no accuracy loss, and it interpolates to
-unseen cost levels for free. (Figure: `results/figures/cost_conditional.png`.)
+augmentation. It also interpolates to costs it never trained on: at off-grid
+cost=0.3% it scores CVaR 3.28 (between the 0.1%→2.72 and 0.5%→3.86 neighbors) and
+at 1.5% it scores 6.72 (between 1%→5.29 and 2%→7.97) — monotone and sensible. One
+model replaces five and covers the continuum. (Figure: `results/figures/cost_conditional.png`.)
 
 ## Limitations / honest caveats
 - ATM single European call; proportional cost only (no fixed/discrete costs).

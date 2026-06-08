@@ -126,8 +126,16 @@ def main():
             s += f"   specialized={spec[c]:.3f}   gap={100*(cc_cvar-spec[c])/spec[c]:+.1f}%"
         print(s)
 
+    # off-grid costs the net never trained on -> tests interpolation
+    off = []
+    for c in [0.003, 0.015]:
+        cc = cvar(hedging_pnl(test, holdings_cc(net, test, K, T, c), K, premium, c))
+        off.append(dict(cost=c, cc_cvar=cc))
+        print(f"  [off-grid] cost={c:.3f}  cost-conditional CVaR={cc:.3f}")
+
     _plot(rows)
-    (MET / "cost_conditional.json").write_text(json.dumps(rows, indent=2))
+    (MET / "cost_conditional.json").write_text(
+        json.dumps({"on_grid": rows, "off_grid": off}, indent=2))
     print(f"\nSaved -> {MET}/cost_conditional.json, {FIG}/cost_conditional.png")
     return rows
 
