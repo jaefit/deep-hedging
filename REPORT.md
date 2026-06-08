@@ -128,20 +128,27 @@ keeps its tail-risk advantage throughout. (Figure: `results/figures/vol_mismatch
 
 GBM is the friendly case for BS delta. The real test is markets where the
 constant-vol diffusion assumption fails. Same cost (1%), both hedgers given the
-**MC-fair premium** for each market (so this is hedging quality, not mispricing):
+**MC-fair premium** for each market (so this is hedging quality, not mispricing).
+Deep-hedge CVaR₉₅ improvement over BS delta, **3 seeds** (mean ± std [min, max]):
 
-| Market | what breaks | BS delta CVaR₉₅ | Deep CVaR₉₅ | Deep improvement |
+| Market | what breaks | BS CVaR₉₅ | Deep CVaR₉₅ | Deep improvement (3 seeds) |
 |---|---|---|---|---|
-| GBM | nothing (BS correct) | 6.91 | 5.61 | **18.8%** |
-| Merton jump-diffusion | gap risk (jumps) | 16.21 | 11.84 | **27.0%** |
-| Heston stochastic vol | latent, moving vol | 9.92 | 7.55 | **23.9%** |
+| GBM | nothing (BS correct) | 6.91 | 5.45 | 21.2% ± 1.8 [18.8, 23.0] |
+| Heston stochastic vol | latent, moving vol | 9.92 | 7.64 | 23.0% ± 0.9 [21.7, 23.9] |
+| Merton jump-diffusion | gap risk (jumps) | 16.21 | 11.83 | **27.0% ± 0.4 [26.6, 27.5]** |
 
-The deep hedger's advantage **widens** exactly where the textbook hedge is
-mis-specified: a continuous delta cannot hedge jump gap risk, and a constant-vol
-delta misjudges Heston's moving vol — the data-driven policy, which learns from
-the actual paths, recovers more of that lost ground. This is the genuine
-robustness result (unlike the earlier vol-mismatch test, here the relative edge
-itself grows, not just the absolute gap). (Figure: `results/figures/markets_cvar.png`.)
+**Honest reading of the bands** (a single-seed run is misleading here — GBM alone
+spans 18.8–23.0% on seed noise):
+- **Jumps give a clearly larger edge.** Merton's band [26.6, 27.5] sits entirely
+  above GBM's — a continuous delta structurally cannot hedge jump gap risk, and
+  the learned policy recovers materially more of it. This is robust to seed.
+- **Stochastic vol is only marginally better than GBM.** Heston [21.7, 23.9]
+  *overlaps* GBM [18.8, 23.0]; the mean is a touch higher but within seed noise, so
+  we do **not** claim a clean GBM < Heston ordering.
+
+So the user's hypothesis — the deep edge grows when BS assumptions break — holds
+firmly for **jump/gap risk**, and is at best marginal for this Heston regime.
+(Figure: `results/figures/markets_cvar_seeds.png`.)
 
 ## One cost-conditional policy (vs per-cost specialists)
 

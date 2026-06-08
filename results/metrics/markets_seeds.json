@@ -1,0 +1,35 @@
+[
+  {
+    "market": "GBM",
+    "premium": 7.9602614909148075,
+    "bs_cvar": 6.911143139428746,
+    "deep_cvar_mean": 5.44631459957406,
+    "deep_cvar_std": 0.12116337831062068,
+    "improve_mean": 21.195170036309854,
+    "improve_std": 1.753159728661555,
+    "improve_min": 18.807782699308103,
+    "improve_max": 22.968208014046397
+  },
+  {
+    "market": "Merton-jump",
+    "premium": 10.24200106848881,
+    "bs_cvar": 16.206118472980428,
+    "deep_cvar_mean": 11.826884672696176,
+    "deep_cvar_std": 0.062315825331029695,
+    "improve_mean": 27.022101606782073,
+    "improve_std": 0.3845203614605522,
+    "improve_min": 26.588629333077336,
+    "improve_max": 27.523197029597753
+  },
+  {
+    "market": "Heston-stochvol",
+    "premium": 7.392852147377975,
+    "bs_cvar": 9.92435700185551,
+    "deep_cvar_mean": 7.63754758102786,
+    "deep_cvar_std": 0.09250593169576184,
+    "improve_mean": 23.042393783295946,
+    "improve_std": 0.9321100770404199,
+    "improve_min": 21.74948690389685,
+    "improve_max": 23.91141776121275
+  }
+]
