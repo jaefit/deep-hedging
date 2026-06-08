@@ -150,6 +150,14 @@ So the user's hypothesis — the deep edge grows when BS assumptions break — h
 firmly for **jump/gap risk**, and is at best marginal for this Heston regime.
 (Figure: `results/figures/markets_cvar_seeds.png`.)
 
+*Why Heston is only marginal here (not a misconfiguration):* the params are a
+**mild** regime — v0 = θ = 0.04 and a modest vol-of-vol ξ = 0.4 keep realized vol
+pinned near the 0.2 that BS delta already assumes, so the market only departs
+slightly from GBM. BS's tail does get worse (CVaR 9.92 vs 6.91 from the ρ = −0.7
+leverage skew), i.e. the market is genuinely harder — the deep hedger just has
+little *extra* structure to exploit. The natural next probe: v0 ≠ θ (start away
+from the long-run vol) or larger ξ, which should open a real Heston edge.
+
 ## One cost-conditional policy (vs per-cost specialists)
 
 Training a separate network per cost is wasteful. A single policy that takes the
@@ -165,9 +173,10 @@ cost-conditional net vs the 5 cost-specialized nets (specialists = multi-seed me
 | 1.0% | 5.286 | 5.441 | −2.9% |
 | 2.0% | 7.966 | 7.902 | +0.8% |
 
-The single net **matches the specialists everywhere and slightly beats them at
-mid-range costs** — cross-cost training acts as regularization / data
-augmentation. It also interpolates to costs it never trained on: at off-grid
+The single net **matches the specialists across the whole grid** — every gap is
+within one seed-std of the specialist deep CVaR (~0.11–0.15), i.e. no real
+difference, so one net loses nothing by covering all costs at once. It also
+interpolates to costs it never trained on: at off-grid
 cost=0.3% it scores CVaR 3.28 (between the 0.1%→2.72 and 0.5%→3.86 neighbors) and
 at 1.5% it scores 6.72 (between 1%→5.29 and 2%→7.97) — monotone and sensible. One
 model replaces five and covers the continuum. (Figure: `results/figures/cost_conditional.png`.)
