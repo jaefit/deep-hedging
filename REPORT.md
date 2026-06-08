@@ -114,12 +114,15 @@ vol changes (cost = 1%). CVaR₉₅:
 | 2.0 | 13.95 | **8.80** |
 | 3.0 | 22.56 | **15.01** |
 
-The deep hedger wins across the *entire* mismatch range and its advantage widens
-as realized vol overshoots the forecast — i.e. it is not only better at the
-hedging desk's matched problem, it is **more robust to the forecast being wrong**.
-This is the concrete seam between the projects: forecast σ in the first, pay for
-σ-forecast error in the second, and a cost-aware learned hedge absorbs that error
-better than the textbook delta. (Figure: `results/figures/vol_mismatch.png`.)
+The deep hedger **retains its edge across the entire mismatch range**, and the
+absolute CVaR gap widens as realized vol overshoots the forecast. Note this is the
+cost-awareness advantage (established in the matched case) carried across vol
+levels — *not* a separate robustness effect: in relative terms both hedgers
+degrade at essentially the same rate (matched→3×: BS ×4.1, Deep ×4.3), so the deep
+hedger does not absorb forecast error more gracefully, it just starts lower and
+stays lower. This is the concrete seam between the projects: forecast σ in the
+first, pay for σ-forecast error in the second, and the cost-aware learned hedge
+keeps its tail-risk advantage throughout. (Figure: `results/figures/vol_mismatch.png`.)
 
 ## Limitations / honest caveats
 - ATM, single option, constant vol, GBM, proportional cost — the friendly case for
