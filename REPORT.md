@@ -124,24 +124,67 @@ stays lower. This is the concrete seam between the projects: forecast σ in the
 first, pay for σ-forecast error in the second, and the cost-aware learned hedge
 keeps its tail-risk advantage throughout. (Figure: `results/figures/vol_mismatch.png`.)
 
+## Beyond GBM: the edge grows when BS assumptions break
+
+GBM is the friendly case for BS delta. The real test is markets where the
+constant-vol diffusion assumption fails. Same cost (1%), both hedgers given the
+**MC-fair premium** for each market (so this is hedging quality, not mispricing):
+
+| Market | what breaks | BS delta CVaR₉₅ | Deep CVaR₉₅ | Deep improvement |
+|---|---|---|---|---|
+| GBM | nothing (BS correct) | 6.91 | 5.61 | **18.8%** |
+| Merton jump-diffusion | gap risk (jumps) | 16.21 | 11.84 | **27.0%** |
+| Heston stochastic vol | latent, moving vol | 9.92 | 7.55 | **23.9%** |
+
+The deep hedger's advantage **widens** exactly where the textbook hedge is
+mis-specified: a continuous delta cannot hedge jump gap risk, and a constant-vol
+delta misjudges Heston's moving vol — the data-driven policy, which learns from
+the actual paths, recovers more of that lost ground. This is the genuine
+robustness result (unlike the earlier vol-mismatch test, here the relative edge
+itself grows, not just the absolute gap). (Figure: `results/figures/markets_cvar.png`.)
+
+## One cost-conditional policy (vs per-cost specialists)
+
+Training a separate network per cost is wasteful. A single policy that takes the
+cost as a 4th input feature — trained to minimize the average Expected Shortfall
+across the cost grid — should cover the whole range. It does: CVaR₉₅ of the one
+cost-conditional net vs the 5 cost-specialized nets (specialists = multi-seed mean):
+
+| Cost | Cost-conditional (1 net) | Specialized (5 nets) | Gap |
+|---|---|---|---|
+| 0.0  | 2.435 | 2.433 | +0.1% |
+| 0.1% | 2.715 | 2.755 | −1.4% |
+| 0.5% | 3.855 | 4.005 | **−3.7%** |
+| 1.0% | 5.286 | 5.441 | −2.9% |
+| 2.0% | 7.966 | 7.902 | +0.8% |
+
+The single net **matches the specialists everywhere and slightly beats them at
+mid-range costs** — cross-cost training acts as regularization / data
+augmentation. One model replaces five at no accuracy loss, and it interpolates to
+unseen cost levels for free. (Figure: `results/figures/cost_conditional.png`.)
+
 ## Limitations / honest caveats
-- ATM, single option, constant vol, GBM, proportional cost — the friendly case for
-  BS delta. The literature's larger deep-hedging wins come from jumps, stochastic
-  vol, and discrete/fixed costs not modeled here.
-- One network per cost level (cost-specific), not a single cost-conditional policy.
-- Risk-neutral drift; no model/parameter uncertainty.
-- Robustness checked over 3 seeds (above); not a full statistical study. Test set
-  is a fixed 50k-path draw, shared across all models for a fair comparison.
+- ATM single European call; proportional cost only (no fixed/discrete costs).
+- Markets (GBM/Merton/Heston) use fixed, hand-set parameters, not calibrated to
+  market option prices. Conclusions are directional, not a calibrated PnL study.
+- Risk-neutral drift; jump/Heston params are a single chosen regime each.
+- Robustness checked over 3 seeds; not a full statistical study. Test set is a
+  fixed 50k-path draw, shared across all models for a fair comparison.
 
 ## Next steps
-- Stochastic-vol / jump paths, where BS delta degrades and the NN edge should widen.
-- Feed the **Volatility Forecasting** project's σ estimates as the simulation vol
-  (and stress-test hedging when the realized vol differs from the pricing vol).
-- A single policy conditioned on the cost level.
+- Calibrate Merton/Heston to a real option surface; add fixed/discrete costs.
+- Multi-instrument hedging (hedge with the underlying *and* other options → vega).
+- A single policy conditioned on cost *and* market regime, not just cost.
 
 ## Reproduce
 ```bash
-python -m src.sanity_m3     # zero-cost: deep hedger recovers BS delta
-python -m src.run_sweep     # cost sweep + figures + metrics
+python -m src.sanity_m3          # zero-cost: deep hedger recovers BS delta
+python -m src.run_sweep          # cost sweep (single seed) + figures
+python -m src.run_sweep_seeds    # multi-seed robustness
+python -m src.run_markets        # GBM vs Merton-jump vs Heston
+python -m src.cost_conditional   # one cost-conditional net vs specialists
+# bridge (run from the volatility-forecasting project first):
+#   python -m src.export_sigma   -> writes deep-hedging/data/vol_input.json
+python -m src.realvol_link       # hedge at SPY's forecast vol + vol-mismatch stress
 ```
-Artifacts: `results/metrics/sweep_metrics.csv`, `results/figures/*.png`.
+Artifacts: `results/metrics/*.{csv,json}`, `results/figures/*.png`.

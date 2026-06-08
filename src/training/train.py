@@ -45,20 +45,29 @@ def _rollout_pnl(net, S, K, T, premium, cost_rate):
 def train_deep_hedger(
     S0=100.0, K=100.0, T=1.0, r=0.0, sigma=0.2, n_steps=50,
     cost_rate=0.0, alpha=0.95, epochs=400, batch=8192, lr=1e-3, seed=0,
+    path_sampler=None, premium=None,
 ):
+    """Train the hedger. `path_sampler(n_paths, rng)->paths` overrides the default
+    GBM market (e.g. Merton/Heston); `premium` overrides the default BS price (pass
+    the MC fair value for non-GBM markets so the P&L is not contaminated by
+    mispricing). Defaults reproduce the GBM + BS-premium setup.
+    """
     torch.manual_seed(seed)
     torch.set_num_threads(1)
     rng = np.random.default_rng(seed)
     from src.baselines.bs import bs_price
 
-    premium = float(bs_price(S0, K, T, r, sigma, call=True))
+    if path_sampler is None:
+        path_sampler = lambda n, g: simulate_gbm(S0, r, sigma, T, n_steps, n, g)
+    if premium is None:
+        premium = float(bs_price(S0, K, T, r, sigma, call=True))
     net = HedgePolicy()
     opt = torch.optim.Adam(net.parameters(), lr=lr)
     k = max(1, int(np.ceil((1.0 - alpha) * batch)))  # tail size for empirical ES
 
     net.train()
     for ep in range(epochs):
-        paths = simulate_gbm(S0, r, sigma, T, n_steps, batch, rng)  # risk-neutral drift=r
+        paths = path_sampler(batch, rng)
         S = torch.from_numpy(paths.astype(np.float32))
         pnl = _rollout_pnl(net, S, K, T, premium, cost_rate)
         loss_var = -pnl  # loss = negative P&L

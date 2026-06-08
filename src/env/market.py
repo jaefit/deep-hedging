@@ -25,8 +25,54 @@ def simulate_gbm(S0, mu, sigma, T, n_steps, n_paths, rng):
     return S0 * np.exp(logpath)
 
 
+def simulate_merton(S0, r, sigma, T, n_steps, n_paths, rng,
+                    lam=1.0, jump_mean=-0.10, jump_std=0.15):
+    """Merton jump-diffusion under the risk-neutral measure, (n_paths, n_steps+1).
+
+    Diffusion + compound-Poisson jumps J=exp(Y), Y~N(jump_mean, jump_std^2).
+    Drift carries the jump compensator -lam*kappa so E[S_t]=S0*e^{rt} (risk-neutral),
+    which makes the MC premium an unbiased fair value. Jumps are the gap risk a
+    continuous BS delta hedge structurally cannot remove.
+    """
+    dt = T / n_steps
+    kappa = np.exp(jump_mean + 0.5 * jump_std**2) - 1.0
+    drift = (r - 0.5 * sigma**2 - lam * kappa) * dt
+    z = rng.standard_normal((n_paths, n_steps))
+    n_jumps = rng.poisson(lam * dt, (n_paths, n_steps))
+    # sum of n_jumps iid Normal(jump_mean, jump_std^2) = Normal(n*m, n*s^2)
+    jump = n_jumps * jump_mean + np.sqrt(n_jumps) * jump_std * rng.standard_normal((n_paths, n_steps))
+    incr = drift + sigma * np.sqrt(dt) * z + jump
+    logpath = np.concatenate([np.zeros((n_paths, 1)), np.cumsum(incr, axis=1)], axis=1)
+    return S0 * np.exp(logpath)
+
+
+def simulate_heston(S0, r, T, n_steps, n_paths, rng,
+                    v0=0.04, kappa=2.0, theta=0.04, xi=0.4, rho=-0.7):
+    """Heston stochastic-volatility paths under risk-neutral measure (full-trunc Euler).
+
+    dS = r S dt + sqrt(v) S dW1 ;  dv = kappa(theta - v) dt + xi sqrt(v) dW2 ;
+    corr(dW1, dW2) = rho. Default v0=theta=0.04 -> ~20% vol. The hedger sees only
+    S (vol is latent), so a constant-vol BS delta is mis-specified here.
+    """
+    dt = T / n_steps
+    S = np.empty((n_paths, n_steps + 1)); S[:, 0] = S0
+    v = np.full(n_paths, v0)
+    for t in range(n_steps):
+        z1 = rng.standard_normal(n_paths)
+        z2 = rho * z1 + np.sqrt(1 - rho**2) * rng.standard_normal(n_paths)
+        vp = np.maximum(v, 0.0)
+        S[:, t + 1] = S[:, t] * np.exp((r - 0.5 * vp) * dt + np.sqrt(vp * dt) * z1)
+        v = v + kappa * (theta - vp) * dt + xi * np.sqrt(vp * dt) * z2
+    return S
+
+
 def call_payoff(S_T, K):
     return np.maximum(S_T - K, 0.0)
+
+
+def mc_premium(paths, K):
+    """Risk-neutral fair premium = E[payoff] on the (r-drift) path measure (r=0 here)."""
+    return float(call_payoff(paths[:, -1], K).mean())
 
 
 def hedging_pnl(paths, holdings, K, premium, cost_rate):
