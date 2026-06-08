@@ -1,5 +1,7 @@
 # Deep Hedging — 신경망 기반 옵션 헤지
 
+> 📊 **Results & findings:** see [REPORT.md](REPORT.md) · 📚 **Beginner-friendly walkthrough:** see [TEACHING.md](TEACHING.md)
+
 ## 한 줄 요약
 거래비용이 존재하는 현실 시장에서, **신경망이 직접 헤지 전략을 학습**하게 한다. Black-Scholes 델타 헤지를 베이스라인으로 두고, 거래비용·이산 시간 하에서 딥러닝 정책이 이를 능가하는지 검증한다. (Buehler et al., 2019, "Deep Hedging" 재현·확장)
 
