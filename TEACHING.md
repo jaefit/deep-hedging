@@ -63,16 +63,18 @@ forecast it, you price and manage risk better.
 | What we measured | Winner |
 |---|---|
 | Size of the forecast (how big is vol) | **HAR** — the simple classic formula |
-| Direction (is vol rising or falling) | **LSTM** — the neural network |
+| Direction (is vol rising or falling) | LSTM, by a small and untested margin |
 
 The fancy ML models did **not** beat the simple HAR formula at predicting the
-*level* of volatility. HAR is famously hard to beat. But ML **did** win at
-predicting the *direction* of change.
+*level* of volatility. HAR is famously hard to beat. On the *direction* of change
+ML came out slightly ahead (about 2 points at 1 day, under half a point at 5 days),
+but we never tested that gap, and a plain moving average was never scored on the
+same metric. Treat it as a hint.
 
 ### What it means
-> ML did not replace the classic model. It added a *different* skill (direction).
-> If your job is to bet on volatility going up or down, ML helps. If you just need
-> the number, the simple formula is enough.
+> ML did not replace the classic model. It may add something on direction, but
+> that still needs a fair baseline and a significance test. If you just need the
+> number, the simple formula is enough.
 
 A nice sanity check: XGBoost, when we looked inside it, mostly used "last week's
 volatility" — exactly what HAR uses by hand. So the ML model re-discovered the
@@ -161,7 +163,7 @@ more gracefully than the textbook; it just started lower and stayed lower.
 > **ML is not a magic upgrade. It is a tool for the exact spots where the classic
 > assumptions break.**
 
-- Volatility level → classic HAR is enough. ML only adds *direction*.
+- Volatility level → classic HAR is enough. ML's lead on *direction* is small and unconfirmed.
 - Hedging in a clean, cheap world → textbook BS is enough.
 - Hedging with big costs or jumps → the learned hedge clearly wins.
 

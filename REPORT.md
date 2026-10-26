@@ -146,7 +146,7 @@ spans 18.8–23.0% on seed noise):
   *overlaps* GBM [18.8, 23.0]; the mean is a touch higher but within seed noise, so
   we do **not** claim a clean GBM < Heston ordering.
 
-So the user's hypothesis — the deep edge grows when BS assumptions break — holds
+So the hypothesis that the deep edge grows when BS assumptions break holds
 firmly for **jump/gap risk**, and is at best marginal for this Heston regime.
 (Figure: `results/figures/markets_cvar_seeds.png`.)
 
